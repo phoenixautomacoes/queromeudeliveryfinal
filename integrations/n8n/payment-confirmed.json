@@ -1,0 +1,35 @@
+{
+  "name": "QMD - Payment Confirmed",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "qmd-payment-confirmed",
+        "responseMode": "onReceived"
+      },
+      "name": "Webhook Payment Confirmed",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $json.body.data.customerPhone }}\",\n  \"text\": \"💳 *Pagamento Confirmado!*\\nSeu pagamento para o pedido #{{ $json.body.data.orderNumber }} foi confirmado com sucesso. Já estamos preparando seu pedido com muito carinho!\"\n}"
+      },
+      "name": "Evolution API - Payment Text",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [500, 300]
+    }
+  ]
+}

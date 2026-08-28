@@ -1,0 +1,43 @@
+{
+  "name": "QMD - Order Created (WhatsApp via Evolution API)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "qmd-order-created",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "name": "Webhook QMD",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $json.body.data.customerPhone }}\",\n  \"text\": \"🍔 *Olá {{ $json.body.data.customerName }}!* Seu pedido #{{ $json.body.data.orderNumber }} foi recebido com sucesso no valor de R$ {{ ($json.body.data.totalCents / 100).toFixed(2) }}. Acompanhe seu pedido pelo link: {{ $env.APP_URL }}/tracking/{{ $json.body.data.trackingToken }}\"\n}"
+      },
+      "name": "Evolution API - WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [500, 300]
+    }
+  ],
+  "connections": {
+    "Webhook QMD": {
+      "main": [
+        [{ "node": "Evolution API - WhatsApp", "type": "main", "index": 0 }]
+      ]
+    }
+  }
+}

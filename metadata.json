@@ -1,0 +1,6 @@
+{
+  "name": "Quero Meu Delivery",
+  "description": "Plataforma profissional de cardápio digital e delivery multiempresa, segura, mobile-first e preparada para produção.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

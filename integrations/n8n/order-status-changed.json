@@ -1,0 +1,35 @@
+{
+  "name": "QMD - Order Status Changed",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "qmd-order-status-changed",
+        "responseMode": "onReceived"
+      },
+      "name": "Webhook Status Changed",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $json.body.data.customerPhone }}\",\n  \"text\": \"🛵 *Atualização do Pedido #{{ $json.body.data.orderNumber }}*\\nStatus atual: *{{ $json.body.data.toStatus }}*\\nAcompanhe ao vivo: {{ $env.APP_URL }}/tracking/{{ $json.body.data.trackingToken }}\"\n}"
+      },
+      "name": "Evolution API - Status Update",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [500, 300]
+    }
+  ]
+}
