@@ -303,7 +303,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
               }`}
             >
               <Activity className="w-4 h-4" />
-              <span>Logs de Integração & Outbox</span>
+              <span>Notificações & Disparos</span>
             </button>
           </nav>
         </div>
@@ -344,10 +344,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
               {activeTab === "zones" && "Zonas e Taxas de Entrega"}
               {activeTab === "coupons" && "Cupons e Promoções"}
               {activeTab === "settings" && "Configurações da Loja"}
-              {activeTab === "outbox" && "Telemetria e Outbox Pattern"}
+              {activeTab === "outbox" && "Notificações e Disparos Automáticos"}
             </h1>
             <p className="text-xs text-stone-500">
-              Gerencie sua operação de delivery com total isolamento e segurança.
+              {activeTab === "outbox"
+                ? "Acompanhe os avisos e disparos automáticos enviados aos clientes e motoboys."
+                : "Gerencie sua operação de delivery com agilidade e controle total."}
             </p>
           </div>
 
@@ -801,24 +803,54 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
           </div>
         )}
 
-        {/* 5. ABA: OUTBOX LOGS */}
+        {/* 5. ABA: NOTIFICAÇÕES & DISPAROS */}
         {activeTab === "outbox" && (
           <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-xs space-y-4">
-            <h3 className="font-extrabold text-stone-900 text-base">Fila de Eventos da Outbox (n8n / Webhooks)</h3>
+            <div>
+              <h3 className="font-extrabold text-stone-900 text-base">Histórico de Notificações e Avisos de Pedidos</h3>
+              <p className="text-xs text-stone-500 mt-0.5">
+                Registro de mensagens automáticas de confirmação e atualizações de entrega enviadas em segundo plano.
+              </p>
+            </div>
+
             <div className="divide-y divide-stone-100 text-xs">
-              {outboxLogs.map(log => (
-                <div key={log.id} className="py-2.5 flex items-center justify-between">
-                  <div>
-                    <span className="font-bold text-stone-900">{log.eventType}</span>
-                    <span className="text-stone-400 ml-2">ID: {log.id.substring(0, 8)}...</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800">
-                      {log.status}
-                    </span>
-                  </div>
+              {outboxLogs.length === 0 ? (
+                <div className="py-8 text-center text-stone-400">
+                  Nenhuma notificação enviada recentemente.
                 </div>
-              ))}
+              ) : (
+                outboxLogs.map(log => {
+                  const eventLabels: Record<string, string> = {
+                    ORDER_CREATED: "Confirmação de Novo Pedido",
+                    ORDER_STATUS_UPDATED: "Atualização de Status do Pedido",
+                    ORDER_ACCEPTED: "Aviso de Pedido em Preparo",
+                    ORDER_DISPATCHED: "Aviso de Saída para Entrega",
+                    ORDER_DELIVERED: "Confirmação de Pedido Entregue",
+                  };
+                  const label = eventLabels[log.eventType] || log.eventType;
+
+                  return (
+                    <div key={log.id} className="py-3 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                        <div>
+                          <span className="font-bold text-stone-900 block">{label}</span>
+                          <span className="text-[11px] text-stone-400">
+                            {new Date(log.createdAt || Date.now()).toLocaleTimeString("pt-BR")}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800">
+                          {log.status === "PROCESSED" || log.status === "SENT" || log.status === "PENDING"
+                            ? "Enviado com Sucesso"
+                            : log.status}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         )}

@@ -314,7 +314,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         style: "currency",
                         currency: "BRL",
                       })
-                    : "Grátis"}
+                    : "Sem taxa"}
                 </span>
               </div>
 

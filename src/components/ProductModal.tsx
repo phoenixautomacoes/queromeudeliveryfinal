@@ -42,7 +42,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     setSelectedOptionsMap(initialMap);
   }, [product]);
 
-  const toggleOption = (groupId: string, option: ProductOption, maxSelect: number) => {
+  const toggleOption = (groupId: string, option: ProductOption, maxSelect: number, isRemoval: boolean = false) => {
     setValidationError(null);
     setSelectedOptionsMap(prev => {
       const current = prev[groupId] || [];
@@ -63,8 +63,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         };
       }
 
-      if (current.length >= maxSelect) {
-        // Limite atingido
+      // Se for grupo de remoção de ingredientes, permite selecionar livremente todos os que quiser retirar
+      if (!isRemoval && maxSelect > 1 && current.length >= maxSelect) {
+        // Limite atingido em grupos com restrição
         return prev;
       }
 
@@ -180,16 +181,29 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           {product.optionGroups &&
             product.optionGroups.map(grp => {
               const selected = selectedOptionsMap[grp.id] || [];
+              const isRemovalGroup =
+                grp.name.toLowerCase().includes("remover") ||
+                grp.name.toLowerCase().includes("retirar") ||
+                grp.name.toLowerCase().includes("remoç") ||
+                grp.name.toLowerCase().includes("sem ");
+
+              let subtitle = "";
+              if (grp.maxSelect === 1) {
+                subtitle = "Escolha 1 opção";
+              } else if (isRemovalGroup) {
+                subtitle = "Selecione o que deseja retirar (opcional)";
+              } else if (grp.maxSelect >= grp.options.length && !grp.isRequired) {
+                subtitle = "Escolha quantas opções desejar";
+              } else {
+                subtitle = `Escolha até ${grp.maxSelect} opções`;
+              }
+
               return (
                 <div key={grp.id} className="border-t border-stone-100 pt-4">
                   <div className="flex items-baseline justify-between mb-2.5">
                     <div>
                       <h4 className="font-bold text-stone-900 text-sm">{grp.name}</h4>
-                      <p className="text-xs text-stone-500">
-                        {grp.maxSelect === 1
-                          ? "Escolha 1 opção"
-                          : `Escolha até ${grp.maxSelect} opções`}
-                      </p>
+                      <p className="text-xs text-stone-500">{subtitle}</p>
                     </div>
                     {grp.isRequired ? (
                       <span className="px-2 py-0.5 rounded-md bg-stone-900 text-white text-[10px] font-bold uppercase">
@@ -206,7 +220,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                       return (
                         <label
                           key={opt.id}
-                          onClick={() => toggleOption(grp.id, opt, grp.maxSelect)}
+                          onClick={() => toggleOption(grp.id, opt, grp.maxSelect, isRemovalGroup)}
                           className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer select-none transition-all ${
                             isSelected
                               ? "bg-stone-50 border-stone-900/40 text-stone-900 font-semibold"
@@ -226,11 +240,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                             <span className="text-sm">{opt.name}</span>
                           </div>
 
-                          <span className="text-xs font-bold text-stone-900">
-                            {opt.priceCents > 0
-                              ? `+ ${(opt.priceCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`
-                              : "Grátis"}
-                          </span>
+                          {opt.priceCents > 0 && (
+                            <span className="text-xs font-bold text-stone-900">
+                              + {(opt.priceCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                            </span>
+                          )}
                         </label>
                       );
                     })}
